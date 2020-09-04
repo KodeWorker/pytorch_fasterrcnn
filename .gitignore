@@ -1,0 +1,11 @@
+*.jpg
+*.png
+*.pyc
+*.pyd
+*.onnx
+*.json
+vison/
+forPaySmart/
+fig/
+images/
+model/
