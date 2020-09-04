@@ -8,6 +8,7 @@ from data.dataset import BreadDataset
 import transforms as T
 import utils
 from engine import train_one_epoch, evaluate
+import argparse
 
 def get_model(num_classes):
     # load an object detection model pre-trained on COCO
@@ -28,17 +29,46 @@ def get_transform(train):
         # and ground-truth for data augmentation
         transforms.append(T.RandomHorizontalFlip(0.5))
     return T.Compose(transforms)
-   
+
+    
+def build_argparser():
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("--num_classes", help="number of classes", required=True, type=int)
+    parser.add_argument("--coco_annotation", help="path to the coco-style json file", required=True, type=str)
+    parser.add_argument("--size", help="size of input image", required=True, type=int)
+    parser.add_argument("--val_ratio", help="validation ratio to total samples", default=0.2, type=float)
+    parser.add_argument("--num_workers", help="number of threads for data loader", default=0, type=int)
+    parser.add_argument("--batch_size", help="batch_size for data loader", default=4, type=int)
+    parser.add_argument("--shuffle", help="if data is randomly shuffled", action='store_true', default=False)
+    parser.add_argument("--num_epochs", help="number of training epochs", required=True, type=int)
+    parser.add_argument("--model_dir", help="directory for storing model weights", required=True, type=str)
+                
+    return parser
+
 if __name__ == "__main__":
-    num_classes = 2 # (bread/not bread)
-    coco_annotation = "./trainval.json"
-    size = 512
-    val_ratio = 0.2
-    num_workers = 4
-    batch_size = 6
-    shuffle = True
-    num_epochs = 10
-    model_dir = "./model"
+    args = build_argparser().parse_args()
+    
+    #num_classes = 2 # (bread/not bread)
+    #coco_annotation = "./trainval.json"
+    #size = 512
+    #val_ratio = 0.2
+    #num_workers = 4
+    #batch_size = 6
+    #shuffle = True
+    #num_epochs = 10
+    #model_dir = "./model"
+    
+    num_classes = args.num_classes # (bread/not bread)
+    coco_annotation = args.coco_annotation
+    size = args.size
+    val_ratio = args.val_ratio
+    num_workers = args.num_workers
+    batch_size = args.batch_size
+    shuffle = args.shuffle
+    num_epochs = args.num_epochs
+    model_dir = args.model_dir
     
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)

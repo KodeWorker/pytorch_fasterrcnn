@@ -4,20 +4,39 @@ from data.dataset import BreadDataset
 from PIL import Image, ImageDraw
 import numpy as np
 import os
+import argparse
+
+def build_argparser():
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("--num_classes", help="number of classes", required=True, type=int)
+    parser.add_argument("--coco_annotation", help="path to the coco-style json file", required=True, type=str)
+    parser.add_argument("--size", help="size of input image", required=True, type=int)
+    parser.add_argument("--model_weights", help="path to the model weights", required=True, type=str)
+    parser.add_argument("--fig_dir", help="directory for storing prediction results", required=True, type=str)
+                
+    return parser
 
 if __name__ == "__main__":
-
-    num_classes = 2 # (bread/not bread)
-    size = 512
-    coco_annotation = "./trainval.json"
-    model_weights_path = "./model/bread_detector_epoch002.pt"
-    fig_dir = "./fig/model_1/eval"
+    args = build_argparser().parse_args()
+    
+    #num_classes = 2 # (bread/not bread)
+    #size = 512
+    #coco_annotation = "./trainval.json"
+    #model_weights = "./model/bread_detector_epoch002.pt"
+    #fig_dir = "./fig/model_1/eval"
+    num_classes = args.num_classes # (bread/not bread)
+    size = args.size
+    coco_annotation = args.coco_annotation
+    model_weights = args.model_weights
+    fig_dir = args.fig_dir
     
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     
     model = get_model(num_classes=num_classes)
-    model.load_state_dict(torch.load(model_weights_path))
+    model.load_state_dict(torch.load(model_weights))
     model.eval()
     
     pic_count = 0

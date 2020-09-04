@@ -5,25 +5,50 @@ import glob
 import os
 from tqdm import tqdm
 
+import argparse
+
+def build_argparser():
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("--size", help="size of input image", required=True, type=int)
+    parser.add_argument("--image_folder", help="directory for testing images", required=True, type=str)
+    parser.add_argument("--onnx_model", help="path to the onnx model file", required=True, type=str)
+    parser.add_argument("--fig_dir", help="directory for storing prediction results", required=True, type=str)
+    parser.add_argument("--threshold", help="class score threshold", required=True, type=float)
+    parser.add_argument("--input_names", nargs='+', help="list of input names", default=["image"])
+    parser.add_argument("--output_names", nargs='+', help="list of output names", default=["boxes", "labels", "scores"])
+    parser.add_argument("--format", help="image format", required=True, type=str)
+    
+    return parser
+
 if __name__ == "__main__":
     
-    onnx_model_path = "./onnx/bread_detector.onnx"
-    image_folder = r"D:\KelvinWu\Datasets\麵包\test dataset"
-    fig_dir = "./fig/epoch000/onnx"
-    size = 512 # input shape (3, 512, 512)
-    threshold = 0.99
+    args = build_argparser().parse_args()
     
-    input_names = ["image"]
-    output_names = ["boxes", "labels", "scores"]
+    #onnx_model = "./onnx/bread_detector.onnx"
+    #image_folder = r"D:\KelvinWu\Datasets\麵包\test dataset"
+    #fig_dir = "./fig/epoch000/onnx"
+    #size = 512 # input shape (3, 512, 512)
+    #threshold = 0.99    
+    #input_names = ["image"]
+    #output_names = ["boxes", "labels", "scores"]
+    onnx_model = args.onnx_model
+    image_folder = args.image_folder
+    fig_dir = args.fig_dir
+    size = args.size
+    threshold = args.threshold
+    input_names = args.input_names
+    output_names = args.output_names
+    format = args.format
     
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
     
-    sess = rt.InferenceSession(onnx_model_path)
+    sess = rt.InferenceSession(onnx_model)
     print(sess.get_outputs()[1].name)
     
-    pic_count = 0
-    image_files = glob.glob(os.path.join(image_folder, "*.JPG"))
+    image_files = glob.glob(os.path.join(image_folder, "*.{}".format(format)))
     for image_file in tqdm(image_files):
         
         draw_image = Image.open(image_file)
@@ -51,8 +76,5 @@ if __name__ == "__main__":
                 draw.rectangle([(boxes[0], boxes[1]), (boxes[2], boxes[3])], outline ="red", width =3)
                 draw.text((boxes[0], boxes[1]), text = str(score))
         
-        filename = "{:04d}.jpg".format(pic_count)
-        draw_image.save(os.path.join(fig_dir, filename), "JPEG")
-        pic_count += 1
-        
-        #pred = sess.run([output_name], {input_name: input})[0]
+        filename = os.path.basename(image_file)
+        draw_image.save(os.path.join(fig_dir, filename))
